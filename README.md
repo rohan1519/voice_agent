@@ -1,103 +1,101 @@
 # AI Voice Interviewer — Junior SDE Screener
 
-A voice agent that conducts a real, structured 10-minute screening interview for Junior SDE candidates — then generates a scored evaluation at the end. The differentiator isn't the voice pipeline; it's the interview policy embedded in the system prompt. The agent dynamically decides whether to probe deeper, rephrase, move on, or redirect based on the actual semantic content of what the candidate said, not keyword matching. It maintains an explicit state machine tracking which competencies have been covered and how many turns have been spent on each topic, so it behaves like a time-aware interviewer rather than a chatbot that happens to ask questions.
+A portfolio demo of a browser-based voice agent that conducts structured technical screening interviews using the Web Speech API and Groq.
 
-## Stack
+## What this is / what this isn't
 
-| Layer | What |
-|---|---|
-| STT | Web Speech API — browser-native, free, unlimited |
-| LLM | [Groq](https://groq.com) — `llama-3.3-70b-versatile`, free tier |
-| TTS | Web Speech API — browser-native, free |
-| UI | Vanilla HTML / CSS / JS — no framework, no build step |
-| Deploy | Vercel (static) |
-| Tests | Jest (Node.js) |
+**What this is:** A portfolio demonstration of prompt engineering and explicit state-machine management. It showcases how to dynamically guide an LLM through a multi-topic technical interview without relying on implicit conversational history alone.
+**What this isn't:** A production-ready or secure hiring tool. State is client-authoritative, making it trivially easy to cheat. It lacks a real backend, session management, or authentication.
 
-No backend. No build step. No framework overhead.
+## Demo
 
-## Setup
+*(No live demo or screen recording is currently available.)* <!-- TODO: Add demo link or GIF here -->
 
-**Requires Chrome or Edge** — Firefox and Safari do not support the Web Speech API.
+## Architecture Overview
 
-```bash
-# 1. Clone
-git clone https://github.com/YOUR_USERNAME/voice_agent.git
-cd voice_agent
+**Architecture Pattern:** Serverless Monolith / Thick Client
 
-# 2. Install dev dependencies (Jest only — not needed to run the app)
-npm install
+- **Thick Client:** The frontend (`frontend/app.js`) acts as the primary state manager, holding the entire interview state and conversation history.
+- **Stateless API:** Vercel serverless functions (`/api/chat` and `/api/evaluate`) act as a proxy to the Groq API. They receive the full state from the client on each turn, mutate it via the LLM and the `InterviewStateManager`, and return the updated state.
 
-# 3. Get a free Groq API key at https://console.groq.com/keys
-#    Create a .env file in the project root and add: GROQ_API_KEY=your_key
+```mermaid
+flowchart TD
+    Client[Browser (Thick Client)\nWeb Speech API]
+    API[Vercel Serverless Functions\n/api/chat, /api/evaluate]
+    Groq[Groq API\nllama-3.3-70b-versatile]
 
-# 4. Start the local server
-vercel dev
-
-# 5. Open http://localhost:3000 in Chrome or Edge
-#    Click Start Interview
+    Client -- Sends transcript & full state --> API
+    API -- Injects state matrix & prompts --> Groq
+    Groq -- Returns LLM response --> API
+    API -- Updates & returns new state --> Client
 ```
 
-## Deploy
+## Tech Stack
 
-A `deploy.sh` script at the project root handles the full go-live flow — git init, checks, and Vercel deploy in one command.
+- **Frontend:** Vanilla HTML / CSS / JS (No framework)
+- **STT / TTS:** Web Speech API (Browser-native)
+- **Backend/API:** Node.js Serverless Functions (Vercel)
+- **LLM:** Groq (`llama-3.3-70b-versatile`)
+- **Testing:** Jest (Node.js)
 
-```bash
-chmod +x deploy.sh
+## Setup / Running Locally
 
-# Dry run (checks everything, skips actual deploy):
-./deploy.sh --dry-run
+**Requirements:** Chrome or Edge (Firefox and Safari do not support the Web Speech API). Requires the [Vercel CLI](https://vercel.com/docs/cli).
 
-# Real deploy:
-./deploy.sh
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/umanggoel21/voice_agent.git
+   cd voice_agent
+   ```
 
-Requires [Vercel CLI](https://vercel.com/docs/cli) installed (`npm i -g vercel`) and logged in (`vercel login`). The script initialises git if needed, checks for uncommitted changes, and prints the live URL on success.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-## Project Structure
+3. **Configure Environment Variables**
+   Create a `.env` file in the project root based on the backend example:
+   ```bash
+   cp backend/.env.example .env
+   ```
+   Add your free Groq API key to the `.env` file (`GROQ_API_KEY=your_key`).
 
-```
-├── app.js                    # All application logic: state machine, Groq calls, UI
-├── index.html                # Three-screen SPA: Setup → Interview → Scorecard
-├── style.css                 # Full design system — dark theme, all three screens
-├── vercel.json               # Static deploy config
-├── prompts/
-│   ├── interviewer.md        # Full system prompt with interview policy and rubric
-│   └── evaluator.md          # Scorecard generation prompt
-├── examples/
-│   └── sample_scorecard.json # Real evaluation output from a test run
-├── src/agent/
-│   ├── stateManager.js       # Pure state machine — testable without browser
-│   └── evaluator.js          # Scorecard parsing + validation
-├── tests/
-│   ├── stateManager.test.js  # 21 tests — state, time-boxing, topic advancement
-│   └── evaluator.test.js     # 23 tests — JSON parsing, fence stripping, validation
-└── .github/workflows/ci.yml  # Runs tests on push; opens GitHub Issue on failure
-```
+4. **Run the local server**
+   ```bash
+   vercel dev
+   ```
 
-## Design Decisions & Tradeoffs
+5. **Open the App**
+   Navigate to `http://localhost:3000` in Chrome or Edge and click "Start Interview".
 
-- **Groq over OpenAI/Anthropic** — free tier (14,400 req/day, 6,000 tokens/min) is enough for a 10-minute interview with margin. The downside: `llama-3.3-70b-versatile` follows complex multi-part system prompts less reliably than frontier models. Compensated by injecting explicit interview state context every turn and writing the policy with concrete examples rather than abstract rules.
+## Known Limitations
 
-- **Web Speech API over Vapi/Deepgram/ElevenLabs** — Vapi's free trial is ~30 minutes total, which burns out during development before the evaluator can try it. Browser-native STT/TTS is unlimited and costs nothing. The tradeoff is Chrome/Edge-only, and voice quality is less polished. For a take-home demo this is the right call.
+This project has several structural limitations documented during its architecture audit:
 
-- **No framework** — Next.js adds 4-6 hours of boilerplate setup for zero benefit here. The IP is the interview logic and prompt design, not the rendering layer. Vanilla JS deploys identically to Next.js on Vercel.
+- **Client-Authoritative State:** The frontend completely controls the `conversationHistory` and `stateData`. In a real hiring scenario, a candidate could intercept the API request and rewrite the history to bypass questions entirely.
+- **God Object Frontend:** `frontend/app.js` tightly couples DOM manipulation, Web Speech API integration, state management, and HTTP networking into a single unmaintainable file.
+- **Hardcoded Prompts:** Prompts are deeply embedded within the API controllers (`chat.js` and `evaluate.js`), making it impossible to scale to new interview roles without code duplication.
+- **Unused Scorecard Validation:** While validation logic exists (`validateScorecard`), it is not called in the `/api/evaluate` production endpoint. LLM hallucinations regarding the scorecard shape will inevitably crash the UI.
+- **Serverless Timeouts:** The evaluation endpoint uses a high token limit (`max_tokens: 1500`), which on slower API days can easily exceed Vercel's strict 10s serverless timeout on free tiers.
+- **Duplicated Initial State:** The initial state definition is hardcoded independently in both the frontend and backend, risking silent drift and data wiping if the backend state changes.
 
-- **State injected into the prompt every turn** — Rather than relying on the LLM to implicitly track progress from conversation history, we inject a compact state block (`current topic`, `exchanges on this topic`, `rephrase budget`) into the system prompt each turn. This makes the time-boxing and topic-advancement behaviour explicit and auditable, and it's why the agent actually moves on rather than looping.
+## Design Decisions Worth Noting
 
-- **Serverless API Layer** — The frontend makes requests to Vercel serverless functions (`/api/chat` and `/api/evaluate`) which securely hold the `GROQ_API_KEY`. This protects the key from being exposed to the browser while maintaining a zero-cost, stateless hosting model.
+- **`InterviewStateManager` Isolation:** The logic for advancing topics and enforcing time-boxing is cleanly extracted into a pure, testable class (`stateManager.js`), preventing the LLM from unpredictably governing the interview flow.
+- **Dynamic Prompt Context:** Instead of relying on abstract rules, the agent dynamically injects a state matrix (`toPromptContext()`) into the LLM system prompt every turn. This explicitly enforces interview time-boxing and topic advancement.
+- **Defensive LLM Parsing:** The scorecard evaluator deliberately strips markdown fences (e.g., ```json) before parsing, a robust pattern for handling open-source model output quirks.
+- **Zero-Dependency Core:** Achieving a full voice-to-voice pipeline using only the native Web Speech API and simple fetch calls is highly efficient and minimizes the attack surface.
 
-## Testing
+## What I'd Do Differently / Next Steps
 
-```bash
-# Run the full test suite (44 tests across 2 files)
-npm test
-```
+To transition this from a portfolio demo to a real system:
 
-Tests cover the two extractable pure-logic modules: `InterviewStateManager` (state transitions, turn accounting, time-boxing thresholds, prompt context generation) and the scorecard evaluator (JSON parsing, markdown fence stripping, full shape validation, all failure modes without crashing).
+1. **Server-Authoritative Session:** Move state management to a real backend (e.g., Node.js + Redis/PostgreSQL) to ensure interview integrity.
+2. **Extract Prompt Layer:** Decouple prompts from the API controllers into a dedicated `prompts/` module, enabling multi-role scalability.
+3. **Refactor Frontend:** Break the vanilla JS "God Object" into clean ES modules (`api.js`, `speech.js`, `ui.js`) or adopt a minimal framework.
+4. **Implement Validation:** Wire up the existing `validateScorecard` logic to gracefully handle LLM shape hallucinations and prevent UI crashes.
+5. **Centralize Configuration:** Move hardcoded model and API URL strings to a dedicated configuration layer.
 
-**Manual conversational tests** — to verify the agent's dynamic behaviour, run through these five scenarios and check the actual responses:
-1. Strong answer → expect a genuine follow-up probing what was actually said
-2. Vague/weak answer → expect one rephrase attempt or a clean move-on
-3. "I don't know" → expect an acknowledgment and immediate topic change, no penalty loop
-4. Off-topic ramble → expect a redirect back within one turn
-5. Long-winded answer → expect the agent to interrupt and move on (time-boxing policy)
+## License
+
+MIT License
