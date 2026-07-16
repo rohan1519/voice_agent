@@ -355,7 +355,10 @@ async function onCandidateFinishedSpeaking(text) {
     });
     
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Server error');
+    if (!res.ok) {
+      if (res.status === 429) throw new Error('RATE_LIMIT');
+      throw new Error(data.error || 'Server error');
+    }
     
     // Update local state from server
     Object.assign(interviewState, data.state);
@@ -373,7 +376,10 @@ async function onCandidateFinishedSpeaking(text) {
     });
   } catch (err) {
     console.error('Chat error:', err);
-    const fallback = 'Sorry, I had a connection issue. Could you repeat that?';
+    let fallback = 'Sorry, I had a connection issue. Could you repeat that?';
+    if (err.message === 'RATE_LIMIT') {
+      fallback = 'This demo is receiving high traffic right now, please try again shortly.';
+    }
     appendTranscriptTurn('assistant', fallback);
     speak(fallback);
   }

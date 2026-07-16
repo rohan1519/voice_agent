@@ -28,13 +28,13 @@ cd voice_agent
 npm install
 
 # 3. Get a free Groq API key at https://console.groq.com/keys
-#    The app prompts for it in the browser. No .env needed to run.
+#    Create a .env file in the project root and add: GROQ_API_KEY=your_key
 
 # 4. Start the local server
-python -m http.server 8080
+vercel dev
 
-# 5. Open http://localhost:8080 in Chrome or Edge
-#    Enter your Groq key when prompted, click Start Interview
+# 5. Open http://localhost:3000 in Chrome or Edge
+#    Click Start Interview
 ```
 
 ## Deploy
@@ -84,7 +84,7 @@ Requires [Vercel CLI](https://vercel.com/docs/cli) installed (`npm i -g vercel`)
 
 - **State injected into the prompt every turn** — Rather than relying on the LLM to implicitly track progress from conversation history, we inject a compact state block (`current topic`, `exchanges on this topic`, `rephrase budget`) into the system prompt each turn. This makes the time-boxing and topic-advancement behaviour explicit and auditable, and it's why the agent actually moves on rather than looping.
 
-- **Groq key in browser, not server** — There's no backend to protect. The key lives in `localStorage` and is sent only from the user's browser to Groq directly. This means no server to manage, no secrets to rotate, and zero hosting cost — acceptable for a screening demo, not for a production multi-tenant tool.
+- **Serverless API Layer** — The frontend makes requests to Vercel serverless functions (`/api/chat` and `/api/evaluate`) which securely hold the `GROQ_API_KEY`. This protects the key from being exposed to the browser while maintaining a zero-cost, stateless hosting model.
 
 ## Testing
 
