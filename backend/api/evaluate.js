@@ -1,4 +1,4 @@
-const { parseScorecard } = require('../agent/evaluator');
+const { parseScorecard, validateScorecard } = require('../agent/evaluator');
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -95,6 +95,11 @@ module.exports = async function handler(req, res) {
     
     // Parse the JSON safely using the evaluator logic
     const scorecard = parseScorecard(raw);
+    
+    const validation = validateScorecard(scorecard);
+    if (!validation.valid) {
+      return res.status(500).json({ error: 'LLM returned malformed scorecard: ' + validation.errors.join(', ') });
+    }
     
     return res.status(200).json(scorecard);
   } catch (error) {

@@ -426,27 +426,52 @@ async function generateScorecard() {
     </div>`;
 
   try {
+    const controller = new AbortController();
+    // Vercel hobby tier default is 10s (max 60s). Assuming standard 10-15s range,
+    // we use 13s to timeout just before a 15s edge or right after a 10s gateway timeout.
+    const timeoutId = setTimeout(() => controller.abort(), 13000);
+
     const res = await fetch('/api/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         transcript: conversationHistory,
         durationMinutes: elapsedMinutes()
-      })
+      }),
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     const scorecard = await res.json();
     if (!res.ok) throw new Error(scorecard.error || 'Server error');
     
+    if (!scorecard || !scorecard.competencies) {
+      throw new Error("We couldn't generate your evaluation. Please try again.");
+    }
+    
     renderScorecard(scorecard);
   } catch (err) {
     console.error('Scorecard generation failed:', err);
+    let errorMsg = err.message;
+    if (err.name === 'AbortError') {
+      errorMsg = "The evaluation is taking longer than expected. Please try again.";
+    }
+    
     els.scorecardContent.innerHTML = `
       <div class="scorecard-error">
         <h3>Couldn't generate scorecard</h3>
-        <p>${err.message}</p>
-        <p>The full transcript is saved in the session. You can retry or review the conversation above.</p>
+        <p>${errorMsg}</p>
+        <p>
+          The full transcript is saved in the session.
+          <br><br>
+          <button id="retry-evaluate-btn" class="btn">Retry Evaluation</button>
+        </p>
       </div>`;
+      
+    document.getElementById('retry-evaluate-btn')?.addEventListener('click', () => {
+      generateScorecard();
+    });
   }
 }
 
