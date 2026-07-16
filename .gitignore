@@ -1,0 +1,42 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+
+# ── Local environment — NEVER commit API keys ─────────────────
+.env
+.env.local
+.env.production
+.env.*.local
+
+# ── Build output ───────────────────────────────────────────────
+.next/
+dist/
+build/
+out/
+
+# ── Test coverage output ───────────────────────────────────────
+coverage/
+
+# ── Vercel local cache ─────────────────────────────────────────
+.vercel/
+
+# ── OS junk ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Editor config (local-only settings) ───────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+
+# ── Python cache (used by serve script) ───────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── Antigravity agent working files (not part of the project) ─
+SKILL.md

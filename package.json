@@ -1,0 +1,19 @@
+{
+  "name": "ai-voice-interviewer",
+  "version": "1.0.0",
+  "description": "AI voice agent that conducts Junior SDE screening interviews with dynamic follow-ups and structured scorecard evaluation.",
+  "scripts": {
+    "test": "npx jest --testPathPattern=backend/tests/",
+    "lint": "eslint backend/tests/ --ext .js",
+    "serve": "python -m http.server 8080"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/backend/tests/**/*.test.js"]
+  },
+  "license": "MIT"
+}

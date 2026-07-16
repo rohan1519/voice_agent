@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Voice Interviewer — Junior SDE Screening</title>
+  <meta name="description" content="A production-quality AI voice agent that conducts structured Junior SDE screening interviews with real conversational intelligence and automatic evaluation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══ Screen 1: Setup ═══════════════════════════════════════════════ -->
+  <div id="setup-screen" class="screen">
+    <div class="setup-card">
+
+      <div class="setup-brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+            <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-name">AI Voice Interviewer</h1>
+          <p class="brand-sub">Junior SDE Screening</p>
+        </div>
+      </div>
+
+      <div class="setup-info">
+        <div class="info-row">
+          <span class="info-icon">⏱</span>
+          <span>10-minute structured interview</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">🎯</span>
+          <span>4 competency areas evaluated</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">📊</span>
+          <span>Auto-generated scorecard at the end</span>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">🔒</span>
+          <span>Key stored locally — never sent to any server</span>
+        </div>
+      </div>
+
+      <div class="setup-form">
+        <button id="start-btn" class="btn-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          Start Interview
+        </button>
+      </div>
+
+      <div class="setup-footer">
+        <p>Works best in Chrome or Edge. Uses Web Speech API (free) + Groq (free tier).</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ Screen 2: Interview ═══════════════════════════════════════════ -->
+  <div id="interview-screen" class="screen hidden">
+
+    <!-- Header bar -->
+    <header class="interview-header">
+      <div class="header-left">
+        <div class="brand-icon sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+            <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+          </svg>
+        </div>
+        <span class="header-title">Junior SDE Screening</span>
+      </div>
+      <div class="header-center">
+        <div id="status-dot" class="status-dot"></div>
+        <span id="status-text" class="status-text">Ready</span>
+      </div>
+      <div class="header-right">
+        <span id="timer" class="timer">0:00</span>
+        <button id="end-btn" class="btn-end" title="End interview and generate scorecard">End Interview</button>
+      </div>
+    </header>
+
+    <!-- Progress bar -->
+    <div class="progress-track">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+
+    <!-- Topic badges -->
+    <div class="topics-row">
+      <div id="topic-badges" class="topic-badges"></div>
+    </div>
+
+    <!-- Main layout -->
+    <main class="interview-layout">
+
+      <!-- Left: voice control -->
+      <section class="voice-panel">
+
+        <div class="waveform-area">
+          <div class="waveform" id="waveform">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+        </div>
+
+        <div class="mic-wrap">
+          <button id="mic-btn" class="mic-btn" aria-label="Start recording">
+            <!-- Idle: microphone -->
+            <svg id="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+              <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+            <!-- Listening: stop -->
+            <svg id="stop-icon" class="hidden" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12" rx="2"/>
+            </svg>
+            <!-- Processing: spinner -->
+            <svg id="spinner-icon" class="hidden spinner" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-opacity="0.2"/>
+              <path d="M12 3a9 9 0 019 9"/>
+            </svg>
+          </button>
+        </div>
+
+        <div id="state-label" class="state-label">Press to answer</div>
+        <div id="live-transcript" class="live-transcript"></div>
+
+        <div class="voice-hint">
+          Tap mic to answer · Tap again to stop · Tap during Alex's response to interrupt
+        </div>
+
+      </section>
+
+      <!-- Right: transcript -->
+      <section class="transcript-panel">
+        <div class="transcript-header">
+          <span class="transcript-label">Live Transcript</span>
+          <span class="transcript-badge">Alex · Junior SDE</span>
+        </div>
+        <div id="transcript" class="transcript" role="log" aria-live="polite">
+          <div class="transcript-empty">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            </svg>
+            <span>Interview transcript will appear here</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Browser warning -->
+    <div id="browser-warn" class="browser-warn hidden">
+      ⚠ Web Speech API requires Chrome or Edge. Please switch browsers.
+    </div>
+
+  </div>
+
+  <!-- ══ Screen 3: Scorecard ═══════════════════════════════════════════ -->
+  <div id="scorecard-screen" class="screen hidden">
+    <div class="scorecard-wrap">
+      <div id="scorecard-content" class="scorecard-content">
+        <!-- Rendered by JS -->
+      </div>
+      <div class="scorecard-actions">
+        <button id="new-session-btn" class="btn-start">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 109-9M3 3v6h6"/>
+          </svg>
+          New Interview Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "candidate_id": "session-1720000000",
+  "role": "Junior SDE",
+  "interview_duration_minutes": 10,
+  "overall_recommendation": "HIRE",
+  "overall_score": 3.5,
+  "competencies": {
+    "problem_solving": {
+      "score": 4,
+      "rating": "strong",
+      "strengths": [
+        "Immediately reached for a hash set for O(n) duplicate detection — no prompting needed",
+        "Correctly identified the O(n) space tradeoff without being asked"
+      ],
+      "concerns": [
+        "Did not consider the sorted array optimization when follow-up was posed — only said 'you could use binary search' without elaborating"
+      ],
+      "evidence": "Candidate said: 'I'd iterate through the array, store each element in a hash set, and if I see one that's already in the set, that's my duplicate. Time is O(n), space is O(n).'"
+    },
+    "data_structures": {
+      "score": 3,
+      "rating": "adequate",
+      "strengths": [
+        "Correctly explained hash map use case for frequency counting",
+        "Knew that hash maps have O(1) average lookup"
+      ],
+      "concerns": [
+        "Could not explain collision handling — said 'I think it handles it automatically' without knowing about chaining or open addressing",
+        "Limited exposure to trees — said 'I know what they are but haven't used them in a project'"
+      ],
+      "evidence": "When asked about collisions: 'I think the language handles it automatically, I haven't had to think about that.'"
+    },
+    "debugging_approach": {
+      "score": 4,
+      "rating": "strong",
+      "strengths": [
+        "Described a systematic approach: reproduce → isolate → check logs → hypothesis",
+        "Mentioned checking environment differences between local and production",
+        "Referenced using a debugger breakpoint rather than relying solely on console.log"
+      ],
+      "concerns": [
+        "Did not mention monitoring tools or error tracking services (Sentry, etc.)"
+      ],
+      "evidence": "Candidate said: 'First thing I'd do is try to reproduce it locally with the same data. If I can't, I'd look at the environment — maybe it's a config variable or a dependency version that differs.'"
+    },
+    "code_quality_and_communication": {
+      "score": 3,
+      "rating": "adequate",
+      "strengths": [
+        "Correctly identified that 'clean code means readable by someone else in 6 months'",
+        "Showed awareness of naming conventions and avoiding magic numbers"
+      ],
+      "concerns": [
+        "Could not give a concrete example of pushing back in a code review — said 'I usually just go along with reviewer comments'",
+        "Communication was clear but answers were surface-level — did not demonstrate SOLID principles or pattern awareness"
+      ],
+      "evidence": "On clean code: 'I think it means code that someone else can read without asking you what it does. Good variable names, no magic numbers, that kind of thing.'"
+    }
+  },
+  "summary": "A capable junior candidate with solid algorithmic instincts and a disciplined debugging mindset. Data structure depth is adequate but shallow on internals. Communicates clearly but stays at surface level on software engineering principles. Would be productive with mentorship on a team with strong code review culture.",
+  "red_flags": [],
+  "notable_positives": [
+    "Unprompted mention of space-time tradeoff — shows she's thinking beyond just 'making it work'",
+    "Debugging approach was structured and showed production awareness — rare for a junior"
+  ],
+  "topics_not_covered": []
+}
